@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Card Target</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Card Target</h1>
+      <p class="sub">Arrange the cards and pick the operations to hit the target.</p>
+    </header>
+
+    <!-- Setup -->
+    <section id="setup" class="panel">
+      <div class="mode-toggle" role="tablist">
+        <button class="mode active" data-mode="year" role="tab">Year</button>
+        <button class="mode" data-mode="random" role="tab">Random 4-digit</button>
+      </div>
+
+      <div id="year-picker" class="picker-wrap">
+        <div class="picker-label">Scroll to pick a year</div>
+        <div class="wheel" id="wheel" tabindex="0" aria-label="Year picker"></div>
+      </div>
+
+      <div id="random-picker" class="picker-wrap hidden">
+        <div class="picker-label">Your random target</div>
+        <div class="random-number" id="random-number">----</div>
+        <button class="secondary" id="reroll">Reroll</button>
+      </div>
+
+      <div class="count-row">
+        <span>Cards</span>
+        <button class="step" id="count-down" aria-label="Fewer cards">−</button>
+        <span id="count" class="count">5</span>
+        <button class="step" id="count-up" aria-label="More cards">+</button>
+      </div>
+
+      <button class="primary" id="start">Deal cards</button>
+    </section>
+
+    <!-- Game -->
+    <section id="game" class="panel hidden">
+      <div class="target-row">
+        <div>
+          <div class="label">Target</div>
+          <div class="target" id="target">0000</div>
+        </div>
+        <div class="result-box">
+          <div class="label">Your result</div>
+          <div class="result" id="result">0</div>
+          <div class="diff" id="diff"></div>
+        </div>
+      </div>
+
+      <div class="board" id="board"></div>
+      <p class="hint-text">Drag cards to reorder. Tap the gaps between cards to change the operation.</p>
+
+      <div class="expr" id="expr"></div>
+
+      <div class="actions">
+        <button class="secondary" id="reshuffle">New cards</button>
+        <button class="secondary" id="hint">Show a solution</button>
+        <button class="secondary" id="back">Change target</button>
+      </div>
+      <div class="solution" id="solution"></div>
+    </section>
+
+    <div class="win hidden" id="win">
+      <div class="win-card">
+        <div class="win-title">You hit it!</div>
+        <div class="win-expr" id="win-expr"></div>
+        <button class="primary" id="again">Play again</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Operator menu shown when a gap is tapped -->
+  <div class="op-menu hidden" id="op-menu"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
