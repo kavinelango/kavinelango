@@ -184,7 +184,6 @@ button {
   border: 2px dashed rgba(255, 255, 255, 0.25);
 }
 .slot:hover { border-color: var(--accent); }
-.slot.join { font-size: 0.7rem; color: var(--muted); }
 
 .hint-text { margin: 0; color: var(--muted); font-size: 0.9rem; text-align: center; }
 .expr { font-family: ui-monospace, Menlo, monospace; font-size: 1.1rem; color: var(--muted); text-align: center; word-break: break-all; }
@@ -201,13 +200,12 @@ button {
   border-radius: 12px;
   padding: 6px;
   display: grid;
-  grid-template-columns: repeat(3, 44px);
+  grid-template-columns: repeat(4, 44px);
   gap: 6px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
 }
 .op-menu button { background: #2c4136; color: var(--text); width: 44px; height: 44px; padding: 0; font-size: 1.2rem; font-weight: 700; }
 .op-menu button.current { background: var(--accent); color: var(--accent-ink); }
-.op-menu button.join { font-size: 0.7rem; }
 
 /* Win overlay */
 .win {

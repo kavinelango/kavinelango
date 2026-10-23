@@ -4,19 +4,16 @@
   // ---------- Config ----------
   const YEAR_MIN = 1900;
   const YEAR_MAX = 2100;
-  const MIN_CARDS = 3;
+  const MIN_CARDS = 4;
   const MAX_CARDS = 8;
   const ROW_HEIGHT = 48; // must match .wheel --row
 
-  // Operator ids, how they display, and how they evaluate.
-  // "join" glues two cards together into one number (2 join 6 -> 26).
+  // Operator ids and how they display.
   const OPS = [
     { id: "+", label: "+" },
     { id: "-", label: "−" },
     { id: "*", label: "×" },
     { id: "/", label: "÷" },
-    { id: "^", label: "^" },
-    { id: "join", label: "join" },
   ];
   const OP_LABEL = Object.fromEntries(OPS.map((o) => [o.id, o.label]));
 
@@ -28,7 +25,7 @@
     mode: "year",
     year: new Date().getFullYear(),
     randomTarget: randomTarget(),
-    count: 5,
+    count: 6,
     target: 0,
     cards: [], // [{ id, value, suit }]
     ops: [], // operator between cards[i] and cards[i + 1]
@@ -44,26 +41,10 @@
   }
 
   // Evaluate cards with the operators between them.
-  // Precedence: join, then ^ (right-assoc), then × ÷, then + −.
+  // Precedence: × ÷ first, then + −.
   function evaluate(nums, ops) {
-    let vals = [nums[0]];
-    let rest = [];
-    for (let i = 0; i < ops.length; i++) {
-      if (ops[i] === "join") {
-        vals[vals.length - 1] = Number(String(vals[vals.length - 1]) + String(nums[i + 1]));
-      } else {
-        vals.push(nums[i + 1]);
-        rest.push(ops[i]);
-      }
-    }
-
-    // ^ is right associative, so fold from the right.
-    for (let i = rest.length - 1; i >= 0; i--) {
-      if (rest[i] === "^") {
-        vals.splice(i, 2, Math.pow(vals[i], vals[i + 1]));
-        rest.splice(i, 1);
-      }
-    }
+    const vals = nums.slice();
+    const rest = ops.slice();
 
     for (let i = 0; i < rest.length; ) {
       if (rest[i] === "*" || rest[i] === "/") {
@@ -89,7 +70,7 @@
   function exprString(nums, ops) {
     let s = String(nums[0]);
     for (let i = 0; i < ops.length; i++) {
-      s += ops[i] === "join" ? String(nums[i + 1]) : ` ${OP_LABEL[ops[i]]} ${nums[i + 1]}`;
+      s += ` ${OP_LABEL[ops[i]]} ${nums[i + 1]}`;
     }
     return s;
   }
@@ -102,7 +83,7 @@
 
   // Search for an ordering + operators that hits the target.
   // Small hands are searched exhaustively; larger ones are sampled randomly
-  // because 8 cards would be 40320 orderings × 6^7 operator choices.
+  // because 8 cards would be 40320 orderings × 4^7 operator choices.
   function solve(nums, target, budgetMs) {
     const deadline = performance.now() + budgetMs;
     const n = nums.length;
@@ -235,14 +216,65 @@
     }));
   }
 
-  // Deal hands until one has a findable solution (or we run out of time).
+  // Build a winnable hand backwards from the target: a sum of product terms
+  // (like 13 × 12 × 13 − 2), each term aimed at whatever is still left over.
+  function construct(n, target, budgetMs) {
+    const deadline = performance.now() + budgetMs;
+    const rand = () => 1 + ((Math.random() * 13) | 0);
+    while (performance.now() < deadline) {
+      for (let attempt = 0; attempt < 500; attempt++) {
+        const nums = [];
+        const ops = [];
+        let rem = target;
+        let left = n;
+        while (left > 0) {
+          const m = 1 + ((Math.random() * Math.min(left, 4)) | 0);
+          const after = left - m;
+          const sign = nums.length === 0 || rem > 0 ? 1 : rem < 0 ? -1 : Math.random() < 0.5 ? 1 : -1;
+          // Leave a little for the cards after this term to make up.
+          const want = Math.max(1, Math.abs(rem) - (after ? (Math.random() * after * 8) | 0 : 0));
+          const term = [];
+          let prod = 1;
+          for (let k = 0; k < m - 1; k++) {
+            const v = rand();
+            term.push(v);
+            prod *= v;
+          }
+          const last = Math.min(13, Math.max(1, Math.round(want / prod)));
+          term.push(last);
+          prod *= last;
+
+          if (nums.length) ops.push(sign > 0 ? "+" : "-");
+          term.forEach((v, k) => {
+            if (k) ops.push("*");
+            nums.push(v);
+          });
+          rem -= sign * prod;
+          left = after;
+        }
+        if (rem === 0 && isHit(evaluate(nums, ops), target)) return { nums, ops };
+      }
+    }
+    return null;
+  }
+
   function deal() {
-    const start = performance.now();
-    let hand, solution;
-    do {
-      hand = randomHand(state.count);
-      solution = solve(hand.map((c) => c.value), state.target, 250);
-    } while (!solution && performance.now() - start < 2500);
+    let solution = construct(state.count, state.target, 400);
+    let hand;
+    if (solution) {
+      hand = shuffle(solution.nums.map((value) => ({
+        id: nextId++,
+        value,
+        suit: SUITS[(Math.random() * 4) | 0],
+      })));
+    } else {
+      // Fall back to dealing random hands and searching them.
+      const start = performance.now();
+      do {
+        hand = randomHand(state.count);
+        solution = solve(hand.map((c) => c.value), state.target, 200);
+      } while (!solution && performance.now() - start < 1200);
+    }
 
     state.cards = hand;
     state.ops = new Array(state.count - 1).fill("+");
@@ -286,7 +318,7 @@
   function createSlotEl(i) {
     const el = document.createElement("button");
     const op = state.ops[i];
-    el.className = "slot" + (op === "join" ? " join" : "");
+    el.className = "slot";
     el.textContent = OP_LABEL[op];
     el.setAttribute("aria-label", `Operation ${i + 1}: ${op}`);
     el.addEventListener("click", (e) => {
@@ -360,7 +392,7 @@
     OPS.forEach((op) => {
       const b = document.createElement("button");
       b.textContent = op.label;
-      b.className = (op.id === state.ops[i] ? "current " : "") + (op.id === "join" ? "join" : "");
+      if (op.id === state.ops[i]) b.className = "current";
       b.addEventListener("click", (e) => {
         e.stopPropagation();
         state.ops[menuSlot] = op.id;
@@ -491,7 +523,7 @@
       const s = state.solution;
       $("solution").textContent = s
         ? `${exprString(s.nums, s.ops)} = ${state.target}`
-        : "No solution found for this hand — try New cards.";
+        : `No solution found with ${state.count} cards. Try more cards.`;
     });
     $("back").addEventListener("click", () => {
       $("game").classList.add("hidden");
