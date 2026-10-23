@@ -138,6 +138,59 @@
     }
   }
 
+  // Prime factorization as [[prime, power], ...].
+  function primeFactors(n) {
+    const out = [];
+    for (let p = 2; p * p <= n; p++) {
+      let k = 0;
+      while (n % p === 0) {
+        n /= p;
+        k++;
+      }
+      if (k) out.push([p, k]);
+    }
+    if (n > 1) out.push([n, 1]);
+    return out;
+  }
+
+  // Every way to write n as a × b with a ≤ b.
+  function factorPairs(n) {
+    const out = [];
+    for (let a = 1; a * a <= n; a++) if (n % a === 0) out.push([a, n / a]);
+    return out;
+  }
+
+  function showFactors() {
+    const n = state.target;
+    const primes = primeFactors(n);
+    const sup = (k) => (k === 1 ? "" : String(k).split("").map((d) => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]).join(""));
+    const box = $("factors");
+    box.innerHTML = "";
+
+    const prime = document.createElement("div");
+    prime.className = "prime";
+    prime.textContent = `${n} = ${primes.map(([p, k]) => p + sup(k)).join(" × ")}`;
+    box.appendChild(prime);
+
+    if (primes.length === 1 && primes[0][1] === 1) {
+      const note = document.createElement("div");
+      note.className = "note";
+      note.textContent = `${n} is prime, so try getting close with × and then fixing it with + or −.`;
+      box.appendChild(note);
+    }
+
+    const pairs = document.createElement("div");
+    pairs.className = "pairs";
+    factorPairs(n).forEach(([a, b]) => {
+      const el = document.createElement("span");
+      el.className = "pair";
+      el.textContent = `${a} × ${b}`;
+      pairs.appendChild(el);
+    });
+    box.appendChild(pairs);
+    box.classList.remove("hidden");
+  }
+
   function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
       const j = (Math.random() * (i + 1)) | 0;
@@ -281,6 +334,7 @@
     state.solution = solution;
     state.won = false;
     $("solution").textContent = "";
+    $("factors").classList.add("hidden");
     $("board").classList.remove("settled");
     render();
     // After the deal animation, stop re-animating on every reorder.
@@ -519,6 +573,7 @@
       $("board").innerHTML = '<p class="hint-text">Dealing…</p>';
       setTimeout(deal, 30);
     });
+    $("factors-btn").addEventListener("click", showFactors);
     $("hint").addEventListener("click", () => {
       const s = state.solution;
       $("solution").textContent = s

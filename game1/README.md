@@ -13,7 +13,7 @@ A browser card game: arrange cards and choose operations to hit a target number.
 5. Your result updates as you play. Hit the target exactly to win.
 
 Normal order of operations applies: `× ÷` first, then `+ −`.
-Card values are 1–13 (A = 1, J = 11, Q = 12, K = 13). The game tries to deal a hand that can be solved, and **Show a solution** reveals one.
+Card values are 1–13 (A = 1, J = 11, Q = 12, K = 13). The game tries to deal a hand that can be solved, **Show a solution** reveals one, and **Hint: show factors of the target** lists its prime factorization and every factor pair.
 
 ## Running it
 

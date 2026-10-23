@@ -189,6 +189,12 @@ button {
 .expr { font-family: ui-monospace, Menlo, monospace; font-size: 1.1rem; color: var(--muted); text-align: center; word-break: break-all; }
 
 .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.factors { width: 100%; text-align: center; display: flex; flex-direction: column; gap: 10px; }
+.factors .prime { font-family: ui-monospace, Menlo, monospace; font-size: 1.1rem; color: var(--accent); }
+.factors .pairs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.factors .pair { background: #0f1a14; border-radius: 8px; padding: 4px 10px; font-family: ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+.factors .note { color: var(--muted); font-size: 0.9rem; }
+
 .solution { font-family: ui-monospace, Menlo, monospace; color: var(--accent); text-align: center; min-height: 1.2em; }
 
 /* Operator popover */
